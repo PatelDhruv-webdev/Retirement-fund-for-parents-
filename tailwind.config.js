@@ -7,18 +7,19 @@ export default {
         brand: {
           50:  '#f0fdfa',
           100: '#ccfbf1',
+          200: '#99f6e4',
           600: '#0d9488',
           700: '#0f766e',
           800: '#115e59',
           900: '#134e4a',
         },
         warm: {
-          50: '#fffbf7',
-          100: '#fef3e2',
+          50:  '#fafaf9',
+          100: '#f2ede6',
         },
       },
       fontSize: {
-        base: ['18px', { lineHeight: '1.7' }],
+        base: ['18px', { lineHeight: '1.65' }],
       },
       minHeight: {
         tap: '44px',

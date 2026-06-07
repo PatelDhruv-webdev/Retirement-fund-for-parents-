@@ -59,6 +59,7 @@ export type FundCategory =
   | 'hybrid'
   | 'gold_etf'
   | 'gold_fof'
+  | 'stock'    // direct equity shares — same CG rules as equity MF
   | 'unknown';
 
 export type FundMode = 'sip' | 'lumpsum';
@@ -71,7 +72,8 @@ export type MutualFund = {
   monthlyAmount?: number;
   investedTotal?: number;
   currentValue: number;
-  startDate?: string; // ISO date string, e.g. "2022-01-01"
+  startDate?: string;       // ISO date string, e.g. "2022-01-01"
+  dividendMonthly?: number; // monthly dividend / distribution income (taxable at slab)
 };
 
 export type PolicyType =
@@ -142,6 +144,8 @@ export type HealthCover = {
   annualPremium?: number;
 };
 
+export type RiskAppetite = 'conservative' | 'moderate' | 'aggressive';
+
 export type Profile = {
   person: Person;
   income: IncomeSource[];
@@ -162,6 +166,7 @@ export type Profile = {
   loans: Loan[];
   monthlyExpenses: number;
   health: HealthCover;
+  riskAppetite?: RiskAppetite;
 };
 
 export type PartialProfile = Partial<Omit<Profile, 'person'>> & {
