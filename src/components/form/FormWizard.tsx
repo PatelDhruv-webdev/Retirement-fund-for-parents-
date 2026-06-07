@@ -18,14 +18,14 @@ type Props = {
 };
 
 const STEPS = [
-  { title: 'About Them',            short: 'About'    },
-  { title: 'Retirement Benefits',   short: 'Benefits' },
-  { title: 'Mutual Funds',          short: 'MFs'      },
-  { title: 'Stocks & Shares',       short: 'Stocks'   },
-  { title: 'Fixed Deposits',        short: 'FDs'      },
-  { title: 'Pension & Income',      short: 'Income'   },
-  { title: 'Expenses & Health',     short: 'Expenses' },
-  { title: 'Investment Approach',   short: 'Risk'     },
+  { title: 'About Them',          short: 'About'    },
+  { title: 'Retirement Benefits', short: 'Benefits' },
+  { title: 'Mutual Funds',        short: 'MFs'      },
+  { title: 'Stocks & Shares',     short: 'Stocks'   },
+  { title: 'Fixed Deposits',      short: 'FDs'      },
+  { title: 'Pension & Income',    short: 'Income'   },
+  { title: 'Expenses & Health',   short: 'Expenses' },
+  { title: 'Investment Approach', short: 'Risk'     },
 ];
 
 const REVIEW_STEP = STEPS.length;
@@ -85,18 +85,23 @@ export function FormWizard({ initial, onComplete }: Props) {
   }
 
   const isReview = step === REVIEW_STEP;
+  const currentStepTitle = STEPS[step]?.title ?? 'Review';
 
   return (
     <div className="min-h-screen bg-warm-50 flex flex-col">
-      <header className="bg-white border-b border-stone-100 px-4 py-4 no-print">
+
+      {/* Header */}
+      <header className="bg-white border-b border-stone-200 px-4 py-4 no-print">
         <div className="max-w-2xl mx-auto">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-start justify-between gap-4 mb-3">
             <div>
-              <h1 className="text-lg font-bold text-brand-800 leading-tight">Retirement Clarity</h1>
-              <p className="text-xs text-stone-500">रिटायरमेंट क्लैरिटी</p>
+              <p className="section-label">Retirement Clarity</p>
+              <p className="font-bold text-stone-900 text-lg leading-tight">{currentStepTitle}</p>
             </div>
             {!isReview && (
-              <span className="text-sm text-stone-500">{STEPS[step]?.title}</span>
+              <span className="text-sm text-stone-400 shrink-0 mt-1">
+                Step {step + 1} of {STEPS.length}
+              </span>
             )}
           </div>
           {!isReview && (
@@ -109,25 +114,29 @@ export function FormWizard({ initial, onComplete }: Props) {
         </div>
       </header>
 
+      {/* Step content */}
       <main className="flex-1 px-4 py-8">
         <div className="max-w-2xl mx-auto">{renderStep()}</div>
       </main>
 
+      {/* Navigation footer */}
       {!isReview && (
-        <footer className="bg-white border-t border-stone-100 px-4 py-4 no-print">
-          <div className="max-w-2xl mx-auto flex gap-3">
-            {step > 0 && (
-              <Button variant="ghost" onClick={back} className="flex-1">← Back</Button>
+        <footer className="bg-white border-t border-stone-200 px-4 py-4 no-print">
+          <div className="max-w-2xl mx-auto">
+            <div className="flex gap-3">
+              {step > 0 && (
+                <Button variant="ghost" onClick={back} className="flex-1">Back</Button>
+              )}
+              <Button onClick={next} className={step === 0 ? 'w-full' : 'flex-[2]'}>
+                {step === STEPS.length - 1 ? 'Review answers' : 'Continue'}
+              </Button>
+            </div>
+            {step > 1 && (
+              <p className="text-center text-xs text-stone-400 mt-2">
+                All fields are optional — skip anything you're unsure about
+              </p>
             )}
-            <Button onClick={next} className={step === 0 ? 'w-full' : 'flex-2'}>
-              {step === STEPS.length - 1 ? 'Review →' : 'Next →'}
-            </Button>
           </div>
-          {step > 1 && (
-            <p className="text-center text-xs text-stone-400 mt-2">
-              All fields are optional — skip anything you're not sure about
-            </p>
-          )}
         </footer>
       )}
     </div>

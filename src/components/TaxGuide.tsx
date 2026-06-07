@@ -7,13 +7,13 @@ type Props = {
 
 type SectionId = 'basics' | 'what-taxed' | 'cg-deep' | 'strategies' | 'invest' | 'monthly-income';
 
-const NAV: Array<{ id: SectionId; label: string; emoji: string }> = [
-  { id: 'basics',        emoji: '📋', label: 'Income Tax Basics'       },
-  { id: 'what-taxed',   emoji: '🔍', label: 'What Gets Taxed?'        },
-  { id: 'cg-deep',      emoji: '📈', label: 'Capital Gains'           },
-  { id: 'strategies',   emoji: '💡', label: 'Smart Strategies'        },
-  { id: 'invest',       emoji: '🏦', label: 'Where to Invest?'        },
-  { id: 'monthly-income', emoji: '💸', label: 'Monthly Income Setup'  },
+const NAV: Array<{ id: SectionId; label: string }> = [
+  { id: 'basics',          label: 'Tax Basics'        },
+  { id: 'what-taxed',      label: 'What Gets Taxed?'  },
+  { id: 'cg-deep',         label: 'Capital Gains'     },
+  { id: 'strategies',      label: 'Strategies'        },
+  { id: 'invest',          label: 'Where to Invest'   },
+  { id: 'monthly-income',  label: 'Monthly Income'    },
 ];
 
 export function TaxGuide({ onBack }: Props) {
@@ -22,14 +22,14 @@ export function TaxGuide({ onBack }: Props) {
   return (
     <div className="min-h-screen bg-warm-50">
       {/* Header */}
-      <header className="bg-white border-b border-stone-100 px-4 py-4 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+      <header className="bg-white border-b border-stone-200 px-4 py-4 sticky top-0 z-10">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
           <div>
-            <h1 className="font-bold text-brand-800">Tax &amp; Investment Guide</h1>
-            <p className="text-xs text-stone-400">FY 2026-27 · New tax regime · Retirement-focused</p>
+            <p className="section-label">Retirement Clarity</p>
+            <p className="font-bold text-stone-900 leading-tight">Tax &amp; Investment Guide</p>
           </div>
-          <button type="button" onClick={onBack} className="btn btn-ghost text-sm">
-            ← Back to report
+          <button type="button" onClick={onBack} className="btn btn-secondary text-sm px-3 min-h-[40px] shrink-0">
+            Back to report
           </button>
         </div>
       </header>
@@ -37,19 +37,19 @@ export function TaxGuide({ onBack }: Props) {
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
 
         {/* Section nav tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
           {NAV.map(n => (
             <button
               key={n.id}
               type="button"
               onClick={() => setActive(n.id)}
-              className={`shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+              className={`shrink-0 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
                 active === n.id
-                  ? 'bg-brand-800 text-white'
-                  : 'bg-white border border-stone-200 text-stone-600 hover:border-brand-400'
+                  ? 'bg-brand-700 text-white'
+                  : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
               }`}
             >
-              {n.emoji} {n.label}
+              {n.label}
             </button>
           ))}
         </div>
@@ -75,7 +75,7 @@ export function TaxGuide({ onBack }: Props) {
               }}
               className="btn btn-secondary text-sm"
             >
-              Next: {NAV[NAV.findIndex(n => n.id === active) + 1]?.label} →
+              Next: {NAV[NAV.findIndex(n => n.id === active) + 1]?.label}
             </button>
           </div>
         )}
@@ -83,7 +83,7 @@ export function TaxGuide({ onBack }: Props) {
         {active === 'monthly-income' && (
           <div className="text-center">
             <button type="button" onClick={onBack} className="btn btn-primary text-sm">
-              ← Back to my report
+              Back to my report
             </button>
           </div>
         )}
