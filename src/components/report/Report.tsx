@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Insights } from '../../types/insights';
 import type { Profile } from '../../types/profile';
 import { Button } from '../ui/Button';
@@ -15,9 +16,13 @@ type Props = {
   profile: Profile;
   asOf: Date;
   onEdit: () => void;
+  onShowGuide: () => void;
+  onNewCalculation: () => void;
 };
 
-export function Report({ insights, profile, asOf, onEdit }: Props) {
+export function Report({ insights, profile, asOf, onEdit, onShowGuide, onNewCalculation }: Props) {
+  const [confirmNew, setConfirmNew] = useState(false);
+
   const name = [
     profile.person.ageDad ? `Dad (${profile.person.ageDad})` : null,
     profile.person.ageMom ? `Mom (${profile.person.ageMom})` : null,
@@ -31,12 +36,18 @@ export function Report({ insights, profile, asOf, onEdit }: Props) {
             <h1 className="font-bold text-brand-800">Retirement Clarity</h1>
             {name && <p className="text-sm text-stone-500">{name}</p>}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-end">
+            <Button variant="secondary" onClick={onShowGuide} className="text-sm">
+              📚 Tax Guide
+            </Button>
             <Button variant="secondary" onClick={() => window.print()} className="text-sm">
               🖨️ Print
             </Button>
             <Button variant="ghost" onClick={onEdit} className="text-sm no-print">
               ✏️ Edit
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirmNew(true)} className="text-sm no-print">
+              🔄 New
             </Button>
           </div>
         </div>
@@ -90,6 +101,20 @@ export function Report({ insights, profile, asOf, onEdit }: Props) {
           </section>
         )}
 
+        {/* Tax Guide nudge */}
+        <section className="no-print">
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 text-center space-y-3">
+            <p className="text-blue-800 font-semibold">Want to understand all of this better?</p>
+            <p className="text-blue-700 text-sm">
+              The Tax &amp; Investment Guide explains income tax slabs, capital gains rules,
+              smart strategies, and how to set up monthly income — in plain English.
+            </p>
+            <Button variant="secondary" onClick={onShowGuide} className="text-sm">
+              📚 Open Tax &amp; Investment Guide →
+            </Button>
+          </div>
+        </section>
+
         <footer className="border-t border-stone-200 pt-6 text-xs text-stone-400 space-y-2">
           <p>
             <strong>Retirement Clarity</strong> — for {name || 'your parents'}.
@@ -105,6 +130,30 @@ export function Report({ insights, profile, asOf, onEdit }: Props) {
           </p>
         </footer>
       </main>
+
+      {/* New calculation confirmation modal */}
+      {confirmNew && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 space-y-4">
+            <h2 className="font-bold text-stone-800 text-lg">Start a new calculation?</h2>
+            <p className="text-stone-600 text-sm">
+              This will clear all saved data and take you back to the beginning of the form.
+              The current report will be lost.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                onClick={() => { setConfirmNew(false); onNewCalculation(); }}
+                className="flex-1"
+              >
+                Yes, start fresh
+              </Button>
+              <Button variant="ghost" onClick={() => setConfirmNew(false)} className="flex-1">
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
