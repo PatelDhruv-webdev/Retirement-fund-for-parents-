@@ -4,7 +4,9 @@ import { Button } from '../ui/Button';
 import { RetirementTransitionSection } from './sections/RetirementTransitionSection';
 import { NetWorthSection } from './sections/NetWorthSection';
 import { CashFlowSection } from './sections/CashFlowSection';
+import { PortfolioCGSection } from './sections/PortfolioCGSection';
 import { LongevitySection } from './sections/LongevitySection';
+import { AdvisorySection } from './sections/AdvisorySection';
 import { GuiltFreeSpendSection } from './sections/GuiltFreeSpendSection';
 import { WithdrawalCalculator } from './sections/WithdrawalCalculator';
 
@@ -23,7 +25,6 @@ export function Report({ insights, profile, asOf, onEdit }: Props) {
 
   return (
     <div className="min-h-screen bg-warm-50">
-      {/* Header */}
       <header className="bg-white border-b border-stone-100 px-4 py-4 no-print">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div>
@@ -43,53 +44,64 @@ export function Report({ insights, profile, asOf, onEdit }: Props) {
 
       <main className="max-w-2xl mx-auto px-4 py-8 space-y-12">
 
-        {/* Hero: Retirement Transition (only for about_to_retire) */}
+        {/* 1. Retirement Transition — hero for about-to-retire */}
         {insights.retirementTransition && (
           <section>
             <RetirementTransitionSection data={insights.retirementTransition} />
           </section>
         )}
 
-        {/* Net Worth */}
+        {/* 2. Advisory — "is this enough?" + allocation plan */}
+        <section>
+          <AdvisorySection advice={insights.allocationAdvice} />
+        </section>
+
+        {/* 3. Net Worth buckets */}
         <section>
           <NetWorthSection insights={insights} />
         </section>
 
-        {/* Cash Flow & Tax */}
+        {/* 4. Cash Flow & Tax */}
         <section>
           <CashFlowSection insights={insights} />
         </section>
 
-        {/* Longevity */}
+        {/* 5. Capital gains — full portfolio */}
+        {insights.capitalGainsSummary.lines.length > 0 && (
+          <section>
+            <PortfolioCGSection data={insights.capitalGainsSummary} />
+          </section>
+        )}
+
+        {/* 6. Longevity */}
         <section>
           <LongevitySection insights={insights} />
         </section>
 
-        {/* Guilt-free spending & fix-it */}
+        {/* 7. Guilt-free spending + fix-it list */}
         <section>
           <GuiltFreeSpendSection insights={insights} />
         </section>
 
-        {/* Withdrawal calculator (only if there are MFs) */}
+        {/* 8. Interactive withdrawal calculator */}
         {profile.mutualFunds.length > 0 && (
           <section className="no-print">
             <WithdrawalCalculator funds={profile.mutualFunds} asOf={asOf} />
           </section>
         )}
 
-        {/* Footer */}
         <footer className="border-t border-stone-200 pt-6 text-xs text-stone-400 space-y-2">
           <p>
             <strong>Retirement Clarity</strong> — for {name || 'your parents'}.
             Calculated on {asOf.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}.
           </p>
           <p>
-            Tax calculations: FY 2026-27, new regime. Assumptions — portfolio return {insights.longevity.assumedReturnRatePct}%,
+            FY 2026-27, new regime. Assumptions — portfolio return {insights.longevity.assumedReturnRatePct}%,
             inflation {insights.longevity.assumedInflationRatePct}%.
           </p>
           <p>
             <strong>Disclaimer:</strong> Informational only. Not financial or tax advice.
-            Consult a qualified CA before important financial decisions.
+            Consult a qualified CA / SEBI-registered adviser before important decisions.
           </p>
         </footer>
       </main>

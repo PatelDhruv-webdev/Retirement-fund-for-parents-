@@ -75,7 +75,7 @@ export function computeMFCapitalGains(
     return computeGoldCG(fund, grossGain, ltcgExemptAlreadyUsed, asOf);
   }
 
-  // Equity / hybrid (≥65% equity)
+  // Equity / hybrid / direct stock shares (same CG rules as equity MF)
   return computeEquityCG(fund, grossGain, ltcgExemptAlreadyUsed, asOf);
 }
 

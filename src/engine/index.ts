@@ -6,6 +6,8 @@ import { computeMonthlyIncome, computeAnnualSlabIncome, hasPensionIncome, comput
 import { computeNewRegimeTax } from './tax';
 import { computeAllBenefits } from './retirementBenefits';
 import { computeLongevity } from './longevity';
+import { computePortfolioCGSummary } from './capitalGainsSummary';
+import { computeAllocationAdvice } from './advisory';
 import {
   CORPUS_INCOME_RATE_PCT,
   DEFAULT_PORTFOLIO_RETURN_PCT,
@@ -32,14 +34,21 @@ export function compute(profile: Profile, asOf: Date): Insights {
     retirementTransition = computeRetirementTransition(profile, investableWealth, asOf);
   }
 
-  // Longevity — use total corpus (for about_to_retire: projected corpus; for already_retired: existing)
-  const corpusForLongevity = retirementTransition
+  // Portfolio capital gains summary
+  const capitalGainsSummary = computePortfolioCGSummary(profile.mutualFunds, asOf);
+
+  // Corpus for advisory and longevity
+  const corpusForAdvice = retirementTransition
     ? retirementTransition.totalCorpus
     : investableWealth;
 
+  // Allocation advice (risk-based)
+  const allocationAdvice = computeAllocationAdvice(profile, corpusForAdvice);
+
+  // Longevity
   const longevityDad = profile.person.ageDad !== undefined
     ? computeLongevity({
-        corpus: corpusForLongevity,
+        corpus: corpusForAdvice,
         monthlyExpenses,
         monthlyIncome,
         annualReturnPct: DEFAULT_PORTFOLIO_RETURN_PCT,
@@ -50,7 +59,7 @@ export function compute(profile: Profile, asOf: Date): Insights {
 
   const longevityMom = profile.person.ageMom !== undefined
     ? computeLongevity({
-        corpus: corpusForLongevity,
+        corpus: corpusForAdvice,
         monthlyExpenses,
         monthlyIncome,
         annualReturnPct: DEFAULT_PORTFOLIO_RETURN_PCT,
@@ -59,7 +68,6 @@ export function compute(profile: Profile, asOf: Date): Insights {
       })
     : undefined;
 
-  // Guilt-free spending = surplus, floored at 0. For about_to_retire, use projected surplus.
   const guiltFreeSpend = retirementTransition
     ? Decimal.max(retirementTransition.projectedMonthlySurplus, 0)
     : Decimal.max(surplus, 0);
@@ -78,6 +86,8 @@ export function compute(profile: Profile, asOf: Date): Insights {
     },
     annualTax,
     retirementTransition,
+    capitalGainsSummary,
+    allocationAdvice,
     longevity: {
       dad: longevityDad && profile.person.ageDad !== undefined
         ? { currentAge: profile.person.ageDad, ageAtDepletion: longevityDad.ageAtDepletion }
@@ -101,8 +111,6 @@ function computeRetirementTransition(
   const { benefitBreakdown, grossLumpSum, taxFreeAmount, taxableAmount, totalAnnuityCorpus } =
     computeAllBenefits(profile.retirementBenefits);
 
-  // Tax on the taxable portion in the year of receipt (slab income for that year)
-  // Add to existing annual slab income for that year
   const baseAnnualIncome = computeAnnualSlabIncome(profile);
   const hasPension = hasPensionIncome(profile);
   const taxWithBenefits = computeNewRegimeTax(
@@ -110,7 +118,6 @@ function computeRetirementTransition(
     hasPension,
   );
   const taxWithoutBenefits = computeNewRegimeTax(baseAnnualIncome, hasPension);
-  // Marginal tax due on taxable benefits
   const taxOnReceiptYear = taxWithBenefits.totalTax.minus(taxWithoutBenefits.totalTax);
 
   const netInvestableCorpusFromBenefits = taxFreeAmount.plus(
@@ -119,13 +126,9 @@ function computeRetirementTransition(
 
   const totalCorpus = netInvestableCorpusFromBenefits.plus(existingInvestableAssets);
 
-  // Monthly income from corpus at SCSS rate (conservative income-floor rate)
   const projectedMonthlyCorpusIncome = totalCorpus
-    .times(CORPUS_INCOME_RATE_PCT)
-    .dividedBy(100)
-    .dividedBy(12);
+    .times(CORPUS_INCOME_RATE_PCT).dividedBy(100).dividedBy(12);
 
-  // Monthly pension from ongoing sources + NPS annuity (from benefit breakdown)
   const projectedMonthlyPension = computeMonthlyIncome(profile.income)
     .plus(totalAnnuityCorpus.times(CORPUS_INCOME_RATE_PCT).dividedBy(100).dividedBy(12));
 
@@ -156,53 +159,48 @@ function buildFixItList(
   const items: FixItItem[] = [];
   const expenses = new Decimal(profile.monthlyExpenses);
 
-  // Emergency fund < 6 months expenses
   const safetyFund = new Decimal(
     (profile.cash.savingsBalance ?? 0) + (profile.cash.idleCash ?? 0),
   );
   if (expenses.gt(0) && safetyFund.lt(expenses.times(6))) {
     items.push({
       severity: 'warn',
-      message: `Emergency fund is low — less than 6 months of expenses. Consider keeping at least ₹${expenses.times(6).toFixed(0)} in savings.`,
+      message: `Emergency fund is low — less than 6 months of expenses. Keep at least ₹${expenses.times(6).toDecimalPlaces(0).toNumber().toLocaleString('en-IN')} in savings.`,
     });
   }
 
-  // Monthly deficit
   if (surplus.lt(0)) {
     items.push({
       severity: 'warn',
-      message: `Monthly income is less than expenses by ₹${surplus.abs().toFixed(0)}. Investments may need to be drawn down each month.`,
+      message: `Monthly income is less than expenses by ₹${surplus.abs().toDecimalPlaces(0).toNumber().toLocaleString('en-IN')}. Investments will be drawn down each month.`,
     });
   }
 
-  // No health insurance
   if (!profile.health.insured) {
     items.push({
       severity: 'warn',
-      message: 'No health insurance cover found. A ₹10–15 lakh senior-citizen health policy is strongly recommended.',
+      message: 'No health insurance found. A ₹10–15 lakh senior-citizen health policy is strongly recommended.',
     });
   }
 
-  // Health insurance sum too low (< ₹5L)
   if (profile.health.insured && (profile.health.sumInsured ?? 0) < 500_000) {
     items.push({
       severity: 'warn',
-      message: `Health cover of ₹${((profile.health.sumInsured ?? 0) / 100_000).toFixed(1)}L may be insufficient. Consider upgrading to at least ₹10L.`,
+      message: `Health cover of ₹${((profile.health.sumInsured ?? 0) / 100_000).toFixed(1)}L is low. Consider upgrading to at least ₹10L.`,
     });
   }
 
-  // No investable wealth at all
   if (investableWealth.isZero()) {
     items.push({
       severity: 'info',
-      message: 'No investable assets entered yet. Add your savings, FDs, or mutual funds to get a complete picture.',
+      message: 'No investable assets entered yet. Add savings, FDs, or mutual funds for a complete picture.',
     });
   }
 
   return items;
 }
 
-// Re-export sub-functions so the UI can call them directly (withdrawal calculator, etc.)
+// Re-export for use in UI components
 export { computeMFCapitalGains } from './capitalGains';
 export { computeLongevity } from './longevity';
 export { computeNewRegimeTax } from './tax';

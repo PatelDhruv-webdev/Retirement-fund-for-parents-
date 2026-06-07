@@ -103,7 +103,31 @@ export const sampleProfile: Profile = {
       currentValue: 4_50_000,
       startDate: '2022-06-01',
     },
+    // Direct stocks
+    {
+      id: 'stk-reliance',
+      label: 'Reliance Industries',
+      category: 'stock',
+      mode: 'lumpsum',
+      investedTotal: 2_00_000,
+      currentValue: 3_80_000,
+      startDate: '2019-03-01',
+      dividendMonthly: 800,
+    },
+    {
+      id: 'stk-tcs',
+      label: 'TCS',
+      category: 'stock',
+      mode: 'lumpsum',
+      investedTotal: 1_50_000,
+      currentValue: 2_40_000,
+      startDate: '2021-07-01',
+    },
   ],
+
+  // ── Direct stock holdings ─────────────────────────────────────────────────────
+  // (added to mutualFunds array with category: 'stock')
+  // These are appended below in mutualFunds.
 
   // ── No LIC policies in Phase 1 (Phase 2 adds IRR computation) ───────────────
   policies: [],
@@ -169,7 +193,9 @@ export const sampleProfile: Profile = {
   // ── Health insurance ─────────────────────────────────────────────────────────
   health: {
     insured: true,
-    sumInsured: 10_00_000,    // ₹10L family floater
+    sumInsured: 10_00_000,
     annualPremium: 28_000,
   },
+
+  riskAppetite: 'moderate',
 };
